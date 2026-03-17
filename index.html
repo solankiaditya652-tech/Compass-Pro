@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>CompassPro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+/* ── ROOT ── */
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
+:root{
+  --bg:#FFFFFF;
+  --bg2:#F7F8FA;
+  --bg3:#EEF0F4;
+  --text:#111318;
+  --text2:#8A8FA8;
+  --text3:#B0B5C8;
+  --accent:#2DD4BF;   /* teal/cyan — matches screenshot green-blue ring */
+  --accent2:#34D399;  /* green for north arrow */
+  --nord:#EF4444;     /* north red */
+  --border:#E8EBF2;
+  --shadow:0 2px 20px rgba(0,0,0,.06);
+  --shadow2:0 8px 40px rgba(0,0,0,.10);
+  --nav-h:68px;
+  --r:28px;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;}
+
+/* ── SPLASH ── */
+#splash{
+  position:fixed;inset:0;background:#fff;z-index:9999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  transition:opacity .5s ease,transform .5s ease;
+}
+#splash.out{opacity:0;transform:translateY(-12px);pointer-events:none;}
+.sp-ring{
+  width:72px;height:72px;border-radius:50%;
+  border:2.5px solid transparent;
+  border-top-color:var(--accent);border-right-color:var(--accent2);
+  animation:spin .9s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.sp-logo{font-size:22px;font-weight:600;color:var(--text);letter-spacing:-.5px;}
+.sp-logo span{color:var(--accent);}
+.sp-sub{font-size:12px;color:var(--text2);letter-spacing:.5px;}
+
+/* ── PERM SCREEN ── */
+#perm-screen{
+  position:fixed;inset:0;z-index:500;background:#fff;
+  display:none;flex-direction:column;align-items:center;justify-content:center;padding:28px;
+}
+#perm-screen.show{display:flex;}
+.pc{
+  background:#fff;border:1.5px solid var(--border);border-radius:var(--r);
+  padding:32px 24px;text-align:center;max-width:340px;width:100%;
+  box-shadow:var(--shadow2);
+}
+.pc-icon{font-size:48px;margin-bottom:16px;display:block;}
+.pc-title{font-size:20px;font-weight:600;color:var(--text);margin-bottom:8px;}
+.pc-desc{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:16px;}
+.pc-steps{
+  text-align:left;background:var(--bg2);border-radius:16px;
+  padding:14px 16px;margin:0 0 16px;display:flex;flex-direction:column;gap:10px;
+}
+.pcs{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--text2);line-height:1.5;}
+.pcs-n{
+  width:22px;height:22px;border-radius:50%;background:var(--accent);
+  color:#fff;font-size:11px;font-weight:600;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0;margin-top:1px;
+}
+.pc-warn{font-size:11px;color:#F59E0B;padding:8px 12px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;margin-bottom:18px;}
+.btn-allow{
+  width:100%;padding:15px;border-radius:16px;border:none;
+  background:var(--text);color:#fff;font-weight:600;font-size:15px;
+  cursor:pointer;font-family:'DM Sans',sans-serif;
+  transition:transform .15s,background .2s;
+}
+.btn-allow:active{transform:scale(.97);background:#333;}
+.btn-skip{
+  width:100%;padding:11px;border-radius:12px;border:1.5px solid var(--border);
+  background:transparent;color:var(--text2);font-size:13px;cursor:pointer;
+  font-family:'DM Sans',sans-serif;margin-top:10px;
+}
+
+/* ── HTTPS WARN ── */
+#https-warn{display:none;position:fixed;inset:0;z-index:600;background:rgba(255,255,255,.95);align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(8px);}
+#https-warn.show{display:flex;}
+.hw{background:#fff;border:1.5px solid #FCA5A5;border-radius:var(--r);padding:28px 24px;text-align:center;max-width:340px;width:100%;box-shadow:var(--shadow2);}
+.hw-icon{font-size:44px;margin-bottom:12px;display:block;}
+.hw-title{font-size:18px;font-weight:600;color:#EF4444;margin-bottom:10px;}
+.hw-desc{font-size:13px;color:#888;line-height:1.7;margin-bottom:12px;}
+.hw-url{font-size:10px;color:#EF4444;background:#FEF2F2;padding:8px 12px;border-radius:8px;margin-bottom:12px;word-break:break-all;}
+.hw-fix{font-size:12px;color:#F59E0B;background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:10px 14px;margin-bottom:16px;text-align:left;line-height:1.8;}
+.btn-hw{padding:12px 28px;border-radius:12px;border:1.5px solid #FCA5A5;background:#FEF2F2;color:#EF4444;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+/* ── DEBUG ── */
+#debug-bar{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(17,19,24,.92);padding:6px 14px;font-size:10px;font-family:monospace;color:#2DD4BF;letter-spacing:.5px;display:none;border-bottom:1px solid rgba(45,212,191,.2);}
+#debug-bar.show{display:block;}
+
+/* ── APP ── */
+#app{width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;}
+.tab-content{display:none;flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:calc(var(--nav-h)+8px);}
+.tab-content.active{display:flex;flex-direction:column;}
+
+/* ── BOTTOM NAV ── */
+#bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);z-index:100;
+  background:rgba(255,255,255,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-top:1px solid var(--border);display:flex;align-items:center;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+.nav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:4px;padding:10px 0;cursor:pointer;border:none;background:transparent;
+  color:var(--text3);transition:color .2s;
+}
+.nav-btn.active{color:var(--text);}
+.nav-btn i{font-size:19px;transition:transform .2s;}
+.nav-btn.active i{transform:scale(1.1);}
+.nav-btn span{font-size:10px;font-weight:500;letter-spacing:.3px;}
+.nav-dot{
+  position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:4px;height:4px;border-radius:50%;background:var(--accent);
+  opacity:0;transition:opacity .2s;
+}
+.nav-btn{position:relative;}
+.nav-btn.active .nav-dot{opacity:1;}
+
+/* ══════════════════════════════
+   TAB 1 — COMPASS
+══════════════════════════════ */
+#tab-compass{align-items:center;background:var(--bg);}
+
+/* Top bar */
+.top-bar{
+  width:100%;display:flex;justify-content:space-between;align-items:center;
+  padding:18px 24px 10px;
+}
+.top-bar-title{font-size:13px;font-weight:500;color:var(--text2);letter-spacing:.5px;}
+.icon-btn{
+  width:36px;height:36px;border-radius:50%;border:1.5px solid var(--border);
+  background:var(--bg2);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .2s;font-size:14px;color:var(--text2);
+}
+.icon-btn:active{background:var(--bg3);transform:scale(.93);}
+
+/* Direction label — big, top center */
+.direction-big{
+  font-size:28px;font-weight:600;color:var(--text);
+  letter-spacing:-.5px;margin:4px 0 0;text-align:center;
+  min-height:36px;
+}
+
+/* Sensor status — slim pill */
+#ss-pill{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 12px;border-radius:20px;font-size:11px;font-weight:500;
+  margin:6px auto 0;
+  transition:all .3s;
+}
+#ss-pill.ok{background:#ECFDF5;color:#059669;border:1px solid #A7F3D0;}
+#ss-pill.warn{background:#FFFBEB;color:#D97706;border:1px solid #FDE68A;}
+#ss-pill.err{background:#FEF2F2;color:#DC2626;border:1px solid #FCA5A5;}
+.ss-dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
+#ss-pill.ok .ss-dot{animation:blink 2s ease infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* Compass wrapper */
+.cvs-wrap{
+  width:100%;display:flex;justify-content:center;align-items:center;
+  padding:16px 20px 8px;flex:1;max-height:52vh;
+}
+.cvs-box{
+  position:relative;
+  width:min(calc(100vw - 48px),320px);
+  aspect-ratio:1;
+}
+#compassCanvas{width:100%;height:100%;display:block;}
+
+/* Center overlay */
+.center-ov{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  display:flex;flex-direction:column;align-items:center;pointer-events:none;
+}
+.deg-num{
+  font-size:clamp(36px,10vw,52px);font-weight:300;color:var(--text);
+  line-height:1;letter-spacing:-2px;font-family:'DM Sans',sans-serif;
+}
+.deg-sym{font-size:.55em;vertical-align:super;letter-spacing:0;font-weight:400;}
+
+/* Calib / North alerts */
+.alert-pill{
+  display:none;align-items:center;gap:8px;
+  padding:7px 16px;border-radius:20px;font-size:12px;font-weight:500;
+  margin:0 24px 6px;
+}
+.alert-pill.show{display:flex;}
+#calib-warn{background:#FFFBEB;color:#D97706;border:1px solid #FDE68A;animation:shk .6s ease infinite;}
+@keyframes shk{0%,100%{transform:translateX(0)}30%{transform:translateX(-3px)}70%{transform:translateX(3px)}}
+#north-pulse{background:#FEF2F2;color:#EF4444;border:1px solid #FCA5A5;animation:nf 1.2s ease infinite;}
+@keyframes nf{0%,100%{opacity:.7}50%{opacity:1}}
+
+/* GPS card */
+.gps-card{
+  width:calc(100% - 40px);margin:8px 20px 0;
+  background:var(--bg2);border-radius:20px;
+  padding:14px 20px;display:grid;grid-template-columns:1fr 1fr;gap:10px;
+  border:1px solid var(--border);
+}
+.gi{display:flex;flex-direction:column;gap:2px;}
+.gl{font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;}
+.gv{font-size:15px;font-weight:500;color:var(--text);font-family:'Inter',sans-serif;}
+.gu{font-size:10px;color:var(--text3);}
+
+/* ══════════════════════════════
+   TAB 2 — BEARING
+══════════════════════════════ */
+#tab-bearing{padding:20px;gap:14px;background:var(--bg);}
+
+.sec-label{font-size:11px;font-weight:600;color:var(--text2);letter-spacing:1.5px;text-transform:uppercase;padding:0 2px;}
+
+.card{
+  background:var(--bg);border:1.5px solid var(--border);border-radius:22px;
+  padding:20px;box-shadow:var(--shadow);
+}
+.card-sub{font-size:13px;color:var(--text2);margin-bottom:12px;}
+
+.bi-row{display:flex;gap:10px;align-items:center;}
+.bi-wrap{flex:1;position:relative;}
+.bi-wrap i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px;}
+.b-in{
+  width:100%;padding:14px 14px 14px 38px;border-radius:14px;
+  background:var(--bg2);border:1.5px solid var(--border);
+  color:var(--text);font-size:20px;font-weight:500;outline:none;
+  font-family:'DM Sans',sans-serif;transition:border-color .2s;
+}
+.b-in:focus{border-color:var(--accent);}
+.b-in::placeholder{color:var(--text3);font-size:14px;font-weight:400;}
+.btn-p{
+  padding:14px 18px;border-radius:14px;border:none;
+  background:var(--text);color:#fff;font-weight:600;font-size:13px;
+  cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;
+  transition:transform .15s,background .2s;
+}
+.btn-p:active{transform:scale(.96);background:#333;}
+.btn-s{
+  padding:11px 16px;border-radius:12px;border:1.5px solid var(--border);
+  background:var(--bg2);color:var(--text);font-size:12px;cursor:pointer;
+  font-family:'DM Sans',sans-serif;transition:all .15s;font-weight:500;
+}
+.btn-s:active{background:var(--bg3);}
+
+.bvc{text-align:center;padding:20px;}
+#bearingCanvas{width:min(200px,calc(100vw - 80px));height:min(200px,calc(100vw - 80px));}
+.b-diff{font-size:16px;font-weight:600;margin-top:12px;color:var(--text);}
+.b-diff span{color:var(--accent);}
+.b-leg{display:flex;justify-content:center;gap:24px;margin-top:10px;}
+.b-li{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);}
+.b-dot{width:8px;height:8px;border-radius:50%;}
+
+.h-list{display:flex;flex-direction:column;gap:8px;}
+.h-item{
+  display:flex;justify-content:space-between;align-items:center;
+  background:var(--bg2);border-radius:14px;padding:12px 16px;
+  animation:sIn .25s ease;
+}
+@keyframes sIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.h-b{font-size:20px;font-weight:600;color:var(--text);font-family:'Inter',sans-serif;}
+.h-t{font-size:11px;color:var(--text2);margin-top:1px;}
+.h-del{
+  width:32px;height:32px;border-radius:50%;border:1.5px solid var(--border);
+  background:var(--bg);color:var(--text2);cursor:pointer;font-size:12px;
+  display:flex;align-items:center;justify-content:center;transition:all .2s;
+}
+.h-del:active{background:#FEF2F2;border-color:#FCA5A5;color:#EF4444;}
+.empty{text-align:center;padding:28px 20px;color:var(--text3);font-size:13px;}
+.empty i{font-size:28px;margin-bottom:8px;display:block;opacity:.5;}
+
+/* ══════════════════════════════
+   TAB 3 — SETTINGS
+══════════════════════════════ */
+#tab-settings{padding:20px;gap:14px;background:var(--bg);}
+
+.s-group{
+  background:var(--bg);border:1.5px solid var(--border);border-radius:22px;
+  overflow:hidden;box-shadow:var(--shadow);
+}
+.s-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:16px 18px;gap:12px;border-bottom:1px solid var(--border);
+}
+.s-row:last-child{border-bottom:none;}
+.s-name{font-size:14px;font-weight:500;color:var(--text);}
+.s-desc{font-size:11px;color:var(--text2);margin-top:1px;}
+
+/* Clean toggle */
+.tgl{position:relative;width:46px;height:26px;flex-shrink:0;}
+.tgl input{opacity:0;width:0;height:0;}
+.tgl-t{
+  position:absolute;inset:0;border-radius:13px;
+  background:var(--bg3);cursor:pointer;transition:background .25s;
+  border:1.5px solid var(--border);
+}
+.tgl-t::after{
+  content:'';position:absolute;left:3px;top:3px;
+  width:18px;height:18px;border-radius:50%;background:#fff;
+  box-shadow:0 1px 4px rgba(0,0,0,.15);
+  transition:transform .25s;
+}
+.tgl input:checked~.tgl-t{background:var(--text);border-color:var(--text);}
+.tgl input:checked~.tgl-t::after{transform:translateX(20px);}
+
+.d-row{display:flex;gap:10px;align-items:center;margin-top:10px;}
+.d-in{
+  flex:1;padding:12px 14px;border-radius:12px;
+  background:var(--bg2);border:1.5px solid var(--border);
+  color:var(--text);font-size:14px;outline:none;transition:border-color .2s;
+  font-family:'DM Sans',sans-serif;
+}
+.d-in:focus{border-color:var(--accent);}
+
+.t-sel{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.t-opt{
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  padding:16px 8px;border-radius:18px;cursor:pointer;
+  border:1.5px solid var(--border);background:var(--bg);
+  transition:all .2s;font-size:12px;color:var(--text2);font-weight:500;
+}
+.t-opt.active{border-color:var(--text);color:var(--text);background:var(--bg2);}
+.sw{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--border);}
+.sw-dark{background:radial-gradient(circle at 35% 35%,#2A2A3A,#0A0A14);}
+.sw-light{background:radial-gradient(circle at 35% 35%,#EEF2FF,#F8FAFF);}
+.sw-teal{background:radial-gradient(circle at 35% 35%,#CCFBF1,#0D9488);}
+
+.calib-card{
+  background:var(--bg2);border:1.5px solid var(--border);border-radius:20px;
+  padding:18px;
+}
+.c-steps{display:flex;flex-direction:column;gap:10px;margin-top:12px;}
+.c-step{display:flex;gap:12px;align-items:flex-start;}
+.c-n{
+  width:22px;height:22px;border-radius:50%;background:var(--bg3);
+  font-size:11px;font-weight:600;color:var(--text2);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.c-t{font-size:13px;color:var(--text2);line-height:1.5;padding-top:2px;}
+
+.danger-btn{
+  width:100%;padding:14px;border-radius:16px;
+  border:1.5px solid #FCA5A5;background:#FEF2F2;
+  color:#EF4444;font-size:14px;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  font-family:'DM Sans',sans-serif;transition:all .2s;
+}
+.danger-btn:active{background:#FEE2E2;}
+
+.ver{text-align:center;padding:12px 0;color:var(--text3);font-size:12px;}
+.ver b{color:var(--text2);}
+
+/* ── TOAST ── */
+#toast{
+  position:fixed;bottom:calc(var(--nav-h)+14px);left:50%;
+  transform:translateX(-50%) translateY(14px);
+  background:var(--text);color:#fff;border-radius:20px;
+  padding:10px 20px;font-size:13px;font-weight:500;z-index:999;
+  opacity:0;transition:all .3s;white-space:nowrap;pointer-events:none;
+  box-shadow:0 4px 20px rgba(0,0,0,.15);
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+::-webkit-scrollbar{width:0;}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="sp-ring"></div>
+  <div class="sp-logo">Compass<span>Pro</span></div>
+  <div class="sp-sub">Navigation</div>
+</div>
+
+<!-- HTTPS WARNING -->
+<div id="https-warn">
+  <div class="hw">
+    <span class="hw-icon">🔒</span>
+    <div class="hw-title">HTTPS Required</div>
+    <div class="hw-desc">Chrome Android blocks sensors on HTTP. Compass won't work without HTTPS.</div>
+    <div class="hw-url" id="hw-url"></div>
+    <div class="hw-fix">
+      ✅ <b>Free HTTPS hosting:</b><br>
+      · GitHub Pages &nbsp;· Netlify &nbsp;· Vercel<br>
+      · InfinityFree with SSL<br>
+      · localhost works without HTTPS
+    </div>
+    <button class="btn-hw" onclick="document.getElementById('https-warn').classList.remove('show')">Understood</button>
+  </div>
+</div>
+
+<!-- PERMISSION SCREEN -->
+<div id="perm-screen">
+  <div class="pc">
+    <span class="pc-icon">🧭</span>
+    <div class="pc-title">Enable Compass</div>
+    <div class="pc-desc">Tap the button to start sensors and GPS.</div>
+    <div class="pc-steps">
+      <div class="pcs"><div class="pcs-n">1</div><span>Tap <b>Start Compass</b> below</span></div>
+      <div class="pcs"><div class="pcs-n">2</div><span>Allow <b>Location access</b> when asked</span></div>
+      <div class="pcs"><div class="pcs-n">3</div><span>Hold phone flat — compass starts</span></div>
+    </div>
+    <div class="pc-warn">⚠️ Requires HTTPS in Chrome Android</div>
+    <button class="btn-allow" onclick="startEverything()">
+      <i class="fa-solid fa-compass" style="margin-right:8px"></i>Start Compass
+    </button>
+    <button class="btn-skip" onclick="skipToApp()">Skip for now</button>
+  </div>
+</div>
+
+<!-- DEBUG BAR -->
+<div id="debug-bar">S:<span id="db-s">—</span> α:<span id="db-a">—</span> H:<span id="db-h">—</span> GPS:<span id="db-g">—</span> PROTO:<span id="db-p">—</span> ABS:<span id="db-abs">—</span></div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- ════ TAB 1: COMPASS ════ -->
+  <div id="tab-compass" class="tab-content active">
+
+    <div class="top-bar">
+      <div class="top-bar-title">COMPASS</div>
+      <div style="display:flex;gap:8px">
+        <div class="icon-btn" onclick="cycleTheme()" title="Theme"><i class="fa-solid fa-circle-half-stroke"></i></div>
+      </div>
+    </div>
+
+    <!-- Big direction name — matches screenshot "North East" -->
+    <div class="direction-big" id="dirBig">—</div>
+
+    <!-- Sensor status pill -->
+    <div id="ss-pill" class="warn" style="display:inline-flex;margin:6px auto 0">
+      <div class="ss-dot"></div>
+      <span id="ss-text">Tap Start to begin</span>
+    </div>
+
+    <!-- Alerts -->
+    <div id="calib-warn" class="alert-pill" style="margin-top:8px">
+      <i class="fa-solid fa-rotate" style="animation:spin 1s linear infinite"></i>
+      Calibrate — move in figure-8
+    </div>
+    <div id="north-pulse" class="alert-pill">
+      <i class="fa-solid fa-arrow-up"></i> North
+    </div>
+
+    <!-- COMPASS CANVAS -->
+    <div class="cvs-wrap">
+      <div class="cvs-box">
+        <canvas id="compassCanvas"></canvas>
+        <!-- Center degree only — like screenshot -->
+        <div class="center-ov">
+          <div class="deg-num" id="degNum">—<span class="deg-sym">°</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GPS card -->
+    <div class="gps-card">
+      <div class="gi"><div class="gl">Latitude</div><div class="gv" id="iLat">—</div><div class="gu">degrees N</div></div>
+      <div class="gi"><div class="gl">Longitude</div><div class="gv" id="iLon">—</div><div class="gu">degrees E</div></div>
+      <div class="gi"><div class="gl">Altitude</div><div class="gv" id="iAlt">—</div><div class="gu">meters</div></div>
+      <div class="gi"><div class="gl">Speed</div><div class="gv" id="iSpd">—</div><div class="gu">km/h</div></div>
+    </div>
+
+  </div>
+
+  <!-- ════ TAB 2: BEARING ════ -->
+  <div id="tab-bearing" class="tab-content">
+
+    <div class="sec-label">Bearing Tracker</div>
+    <div class="card">
+      <div class="card-sub">Set a target bearing to navigate toward</div>
+      <div class="bi-row">
+        <div class="bi-wrap">
+          <i class="fa-solid fa-compass"></i>
+          <input type="number" class="b-in" id="bInput" placeholder="0 – 360" min="0" max="360">
+        </div>
+        <button class="btn-p" onclick="lockBearing()">Lock</button>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:8px">
+        <button class="btn-s" onclick="saveBearing()" style="flex:1"><i class="fa-regular fa-bookmark" style="margin-right:6px"></i>Save</button>
+        <button class="btn-s" onclick="clearBearing()" style="flex:1"><i class="fa-solid fa-xmark" style="margin-right:6px"></i>Clear</button>
+      </div>
+    </div>
+
+    <div class="card bvc">
+      <canvas id="bearingCanvas"></canvas>
+      <div class="b-diff" id="bDiff">Set a bearing above</div>
+      <div class="b-leg">
+        <div class="b-li"><div class="b-dot" style="background:#EF4444"></div>Current</div>
+        <div class="b-li"><div class="b-dot" style="background:#2DD4BF"></div>Target</div>
+      </div>
+    </div>
+
+    <div class="sec-label">Saved Bearings</div>
+    <div class="card">
+      <div class="h-list" id="hList">
+        <div class="empty"><i class="fa-regular fa-bookmark"></i>No saved bearings yet</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ════ TAB 3: SETTINGS ════ -->
+  <div id="tab-settings" class="tab-content">
+
+    <div class="sec-label">Navigation</div>
+    <div class="s-group">
+      <div class="s-row"><div><div class="s-name">Qibla Mode</div><div class="s-desc">Show Mecca direction</div></div><label class="tgl"><input type="checkbox" id="qT" onchange="applySett()"><div class="tgl-t"></div></label></div>
+      <div class="s-row"><div><div class="s-name">Haptic on North</div><div class="s-desc">Vibrate when pointing North</div></div><label class="tgl"><input type="checkbox" id="hT" checked onchange="applySett()"><div class="tgl-t"></div></label></div>
+      <div class="s-row"><div><div class="s-name">Debug Mode</div><div class="s-desc">Show sensor data bar</div></div><label class="tgl"><input type="checkbox" id="dT" onchange="toggleDbg()"><div class="tgl-t"></div></label></div>
+    </div>
+
+    <div class="sec-label">Declination</div>
+    <div class="card" style="padding:18px">
+      <div class="card-sub" style="margin-bottom:0">Magnetic offset correction (degrees)</div>
+      <div class="d-row">
+        <input type="number" class="d-in" id="dIn" placeholder="e.g. -3.5" step="0.1">
+        <button class="btn-p" onclick="applyDecl()">Apply</button>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px">Active: <b style="color:var(--text2)" id="dDisp">0.0°</b></div>
+    </div>
+
+    <div class="sec-label">Theme</div>
+    <div class="t-sel">
+      <div class="t-opt active" id="opt-light" onclick="setTheme('light')"><div class="sw sw-light"></div>Light</div>
+      <div class="t-opt" id="opt-dark" onclick="setTheme('dark')"><div class="sw sw-dark"></div>Dark</div>
+      <div class="t-opt" id="opt-teal" onclick="setTheme('teal')"><div class="sw sw-teal"></div>Teal</div>
+    </div>
+
+    <div class="sec-label">Calibration</div>
+    <div class="calib-card">
+      <div style="font-size:13px;font-weight:600;color:var(--text);">How to Calibrate Sensor</div>
+      <div class="c-steps">
+        <div class="c-step"><div class="c-n">1</div><div class="c-t">Hold device flat, screen facing up</div></div>
+        <div class="c-step"><div class="c-n">2</div><div class="c-t">Move slowly in a figure-8 pattern, 3–4 times</div></div>
+        <div class="c-step"><div class="c-n">3</div><div class="c-t">Keep away from metal objects & electronics</div></div>
+      </div>
+    </div>
+
+    <button class="danger-btn" onclick="clearHistory()"><i class="fa-solid fa-trash"></i>Clear All Saved Bearings</button>
+    <div class="ver">CompassPro &nbsp;·&nbsp; <b>v3.0.0</b></div>
+
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div id="bottom-nav">
+    <button class="nav-btn active" onclick="switchTab('compass',this)">
+      <div class="nav-dot"></div>
+      <i class="fa-solid fa-compass"></i><span>Compass</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('bearing',this)">
+      <div class="nav-dot"></div>
+      <i class="fa-solid fa-crosshairs"></i><span>Bearing</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('settings',this)">
+      <div class="nav-dot"></div>
+      <i class="fa-solid fa-sliders"></i><span>Settings</span>
+    </button>
+  </div>
+
+</div><!-- end #app -->
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+const S={
+  heading:0, smooth:0, target:null,
+  lat:null, lon:null, alt:null, spd:null,
+  theme:'light', qibla:false, haptic:true, decl:0,
+  history:[], sensorOK:false, lastH:-1,
+  _lastVib:0, _lastRaw:null, _absActive:false
+};
+const MECCA={lat:21.4225,lon:39.8262};
+
+// ═══════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════
+window.addEventListener('load',()=>{
+  loadSett(); loadHistory();
+  initCvs(); initBCvs();
+  d('p', location.protocol.replace(':',''));
+
+  setTimeout(()=>{
+    document.getElementById('splash').classList.add('out');
+    setTimeout(()=>{try{document.getElementById('splash').remove();}catch(e){}},600);
+
+    const secure=location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1';
+    if(!secure){
+      document.getElementById('hw-url').textContent=location.href;
+      document.getElementById('https-warn').classList.add('show');
+      setSS('err','HTTP — sensors blocked. Use HTTPS.');
+    }
+    document.getElementById('perm-screen').classList.add('show');
+  },1600);
+});
+
+function startEverything(){
+  document.getElementById('perm-screen').classList.remove('show');
+  initSensors();
+  requestGPS();
+}
+function skipToApp(){
+  document.getElementById('perm-screen').classList.remove('show');
+  initSensors();
+}
+
+// ═══════════════════════════════════════
+// SENSORS
+// ═══════════════════════════════════════
+function initSensors(){
+  setSS('warn','Connecting...');
+  if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){
+    DeviceOrientationEvent.requestPermission()
+      .then(r=>{
+        if(r==='granted') bindSensors();
+        else setSS('err','Permission denied. Enable in iOS Settings → Safari → Motion');
+      }).catch(()=>bindSensors());
+  } else { bindSensors(); }
+}
+
+function bindSensors(){
+  if('ondeviceorientationabsolute' in window){
+    window.addEventListener('deviceorientationabsolute', evtAbs, true);
+    d('abs','YES');
+  } else { d('abs','NO'); }
+  window.addEventListener('deviceorientation', evtStd, true);
+  setTimeout(()=>{
+    if(!S.sensorOK)setSS('err','No sensor. Chrome → Settings → Site Settings → Motion → Allow');
+  },4000);
+}
+
+function evtAbs(e){
+  if(e.alpha===null||e.alpha===undefined) return;
+  S._absActive=true;
+  processH((360-e.alpha+360)%360);
+  d('s','ABS');
+}
+function evtStd(e){
+  if(S._absActive) return;
+  if(e.alpha===null||e.alpha===undefined) return;
+  let raw;
+  if(e.webkitCompassHeading!==undefined&&e.webkitCompassHeading!==null){
+    raw=e.webkitCompassHeading; d('s','iOS');
+  } else {
+    raw=(360-e.alpha+360)%360; d('s','STD');
+  }
+  processH(raw);
+}
+
+function processH(raw){
+  const heading=((raw+S.decl)%360+360)%360;
+  if(Math.abs(heading-(S._lastRaw??-999))<0.3) return;
+  S._lastRaw=heading; S.heading=heading;
+  if(!S.sensorOK){ S.sensorOK=true; setSS('ok','Sensor active'); }
+  d('a',raw.toFixed(1)); d('h',heading.toFixed(1));
+  smoothH();
+}
+
+function smoothH(){
+  let diff=S.heading-S.smooth;
+  if(diff>180) diff-=360; if(diff<-180) diff+=360;
+  S.smooth+=diff*0.2;
+  S.smooth=((S.smooth%360)+360)%360;
+  updateUI();
+}
+
+// ═══════════════════════════════════════
+// GPS
+// ═══════════════════════════════════════
+function requestGPS(){
+  if(!navigator.geolocation) return;
+  navigator.geolocation.watchPosition(pos=>{
+    S.lat=pos.coords.latitude; S.lon=pos.coords.longitude;
+    S.alt=pos.coords.altitude; S.spd=pos.coords.speed;
+    document.getElementById('iLat').textContent=S.lat.toFixed(4);
+    document.getElementById('iLon').textContent=S.lon.toFixed(4);
+    document.getElementById('iAlt').textContent=S.alt!==null?Math.round(S.alt):'—';
+    document.getElementById('iSpd').textContent=S.spd!==null?(S.spd*3.6).toFixed(1):'—';
+    d('g',S.lat.toFixed(2)+','+S.lon.toFixed(2));
+  },err=>{d('g','e'+err.code);},{enableHighAccuracy:true,maximumAge:2000,timeout:15000});
+}
+
+// ═══════════════════════════════════════
+// UI UPDATE
+// ═══════════════════════════════════════
+function updateUI(){
+  const h=S.smooth, deg=Math.round(h);
+  document.getElementById('degNum').innerHTML=`${deg}<span class="deg-sym">°</span>`;
+  document.getElementById('dirBig').textContent=getDirFull(deg);
+
+  const isNorth=deg<=2||deg>=358;
+  document.getElementById('north-pulse').classList.toggle('show',isNorth);
+  if(isNorth&&S.haptic&&navigator.vibrate&&Date.now()-S._lastVib>2000){
+    navigator.vibrate(50); S._lastVib=Date.now();
+  }
+
+  if(Math.abs(h-S.lastH)>0.5){ S.lastH=h; drawCompass(h); }
+}
+
+// ═══════════════════════════════════════
+// COMPASS CANVAS — clean minimal style
+// ═══════════════════════════════════════
+let cCtx,cSz;
+function initCvs(){
+  const cv=document.getElementById('compassCanvas');
+  cSz=Math.min(cv.parentElement.offsetWidth||300,320);
+  cv.width=cSz; cv.height=cSz;
+  cCtx=cv.getContext('2d');
+  drawCompass(0);
+}
+
+function drawCompass(hdg){
+  if(!cCtx) return;
+  const ctx=cCtx, sz=cSz, cx=sz/2, cy=sz/2;
+  const R=sz/2-6;
+  ctx.clearRect(0,0,sz,sz);
+
+  const isDark=S.theme==='dark';
+  const isTeal=S.theme==='teal';
+
+  // Define ring colors matching screenshot (gradient teal→blue)
+  // North side = green (#34D399), rest = light teal/cyan fading to light blue
+  // We'll draw the ring in sections
+
+  // ── Rotating degree ring ──
+  ctx.save();
+  ctx.translate(cx,cy);
+  ctx.rotate(-hdg*Math.PI/180);
+
+  // Draw colored tick ring — like screenshot gradient teal on left, blue on right
+  for(let i=0;i<360;i+=2){
+    const a=i*Math.PI/180;
+    const isMain=i%90===0, isMid=i%45===0&&!isMain, isTen=i%10===0&&!isMid&&!isMain;
+    const tLen=isMain?16:isMid?11:isTen?7:3.5;
+    const r1=R-2, r2=r1-tLen;
+
+    // Color logic: North zone = green, transition around ring
+    // Similar to screenshot — teal-green on top/left, light blue on bottom/right
+    let alpha, color;
+    const normDeg=((i%360)+360)%360;
+
+    if(normDeg>=315||normDeg<=45){
+      // North zone — green (like screenshot)
+      color=isDark?'rgba(52,211,153,1)':isTeal?'rgba(13,148,136,1)':'rgba(52,211,153,1)';
+      alpha=isMain?1:isMid?.9:isTen?.7:.5;
+    } else if(normDeg>45&&normDeg<=180){
+      // Right side — transitioning to light blue (screenshot right side)
+      const t=(normDeg-45)/135;
+      const r2c=isDark?Math.round(45+t*150):Math.round(52+t*100);
+      const g2c=isDark?Math.round(211-t*100):Math.round(211-t*100);
+      const b2c=isDark?Math.round(153+t*100):Math.round(153+t*100);
+      color=`rgba(${r2c},${g2c},${b2c},.8)`;
+      alpha=isMain?1:isMid?.7:isTen?.5:.35;
+    } else {
+      // Left/bottom — light steel blue (screenshot bottom/left)
+      color=isDark?'rgba(147,197,253,.7)':'rgba(125,211,252,.75)';
+      alpha=isMain?1:isMid?.7:isTen?.5:.3;
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(r1*Math.sin(a),-r1*Math.cos(a));
+    ctx.lineTo(r2*Math.sin(a),-r2*Math.cos(a));
+    ctx.strokeStyle=color;
+    ctx.globalAlpha=alpha;
+    ctx.lineWidth=isMain?2.5:isMid?2:1.5;
+    ctx.lineCap='round';
+    ctx.stroke();
+  }
+  ctx.globalAlpha=1;
+
+  // Cardinal letters N W E S (like screenshot — subtle, clean)
+  const cards=[['N',0],[' E',90],['S',180],['W ',270]];
+  cards.forEach(([lbl,ang])=>{
+    const a=ang*Math.PI/180, lr=R-30;
+    ctx.save();
+    ctx.translate(lr*Math.sin(a),-lr*Math.cos(a));
+    ctx.rotate(hdg*Math.PI/180);
+    const isN=lbl==='N';
+    ctx.font=`${isN?'600':'500'} ${isN?13:11}px DM Sans,sans-serif`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillStyle=isN
+      ? (isDark?'#34D399':'#059669')
+      : (isDark?'rgba(200,220,255,.6)':'rgba(100,150,200,.65)');
+    ctx.fillText(lbl.trim(),0,0);
+    ctx.restore();
+  });
+
+  ctx.restore(); // end rotate
+
+  // ── North Pointer Arrow (like screenshot — green triangle above ring) ──
+  // The screenshot shows a green arrow OUTSIDE the ring pointing to where North is
+  // This rotates with the heading so it points to North direction
+  const arrowAngle=(-hdg)*Math.PI/180;
+  const arrowR=R+18; // outside the ring
+  const arrowTip={x:cx+arrowR*Math.sin(arrowAngle),y:cy-arrowR*Math.cos(arrowAngle)};
+  const arrowBase=R+6;
+  const bx1=cx+(arrowBase)*Math.sin(arrowAngle-0.18);
+  const by1=cy-(arrowBase)*Math.cos(arrowAngle-0.18);
+  const bx2=cx+(arrowBase)*Math.sin(arrowAngle+0.18);
+  const by2=cy-(arrowBase)*Math.cos(arrowAngle+0.18);
+
+  ctx.beginPath();
+  ctx.moveTo(arrowTip.x,arrowTip.y);
+  ctx.lineTo(bx1,by1);
+  ctx.lineTo(bx2,by2);
+  ctx.closePath();
+  ctx.fillStyle=isDark?'#34D399':'#10B981';
+  ctx.shadowColor=isDark?'#34D399':'#10B981';
+  ctx.shadowBlur=isDark?8:4;
+  ctx.fill();
+  ctx.shadowBlur=0;
+
+  // ── Center tick line (the "|" at top of screenshot) ──
+  // Fixed vertical indicator line at top center
+  ctx.beginPath();
+  ctx.moveTo(cx,cy-R-4);
+  ctx.lineTo(cx,cy-R-18);
+  ctx.strokeStyle=isDark?'rgba(255,255,255,.3)':'rgba(0,0,0,.18)';
+  ctx.lineWidth=2; ctx.lineCap='round'; ctx.stroke();
+
+  // Qibla
+  if(S.qibla&&S.lat!==null){
+    const qb=calcBear(S.lat,S.lon,MECCA.lat,MECCA.lon);
+    const qa=(qb-hdg)*Math.PI/180;
+    const qr=R*.74;
+    ctx.save(); ctx.translate(cx,cy); ctx.rotate(qa);
+    ctx.beginPath(); ctx.moveTo(0,-qr); ctx.lineTo(5,-qr+14); ctx.lineTo(-5,-qr+14); ctx.closePath();
+    ctx.fillStyle='#F59E0B'; ctx.shadowColor='#F59E0B'; ctx.shadowBlur=8; ctx.fill();
+    ctx.font='bold 8px DM Sans'; ctx.textAlign='center'; ctx.fillStyle='#F59E0B';
+    ctx.fillText('KA',0,-qr-8);
+    ctx.restore();
+  }
+}
+
+// ═══════════════════════════════════════
+// BEARING CANVAS
+// ═══════════════════════════════════════
+let bCtx,bSz;
+function initBCvs(){
+  const cv=document.getElementById('bearingCanvas');
+  bSz=Math.min(200,window.innerWidth-80);
+  cv.width=bSz; cv.height=bSz; bCtx=cv.getContext('2d');
+  drawB();
+}
+
+function drawB(){
+  if(!bCtx) return;
+  const ctx=bCtx,sz=bSz,cx=sz/2,cy=sz/2,R=sz/2-10;
+  const isDark=S.theme==='dark';
+  ctx.clearRect(0,0,sz,sz);
+
+  // Ring
+  ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2);
+  ctx.strokeStyle=isDark?'rgba(255,255,255,.1)':'rgba(0,0,0,.08)'; ctx.lineWidth=1.5; ctx.stroke();
+
+  // Arrows
+  dArr(ctx,cx,cy,R*.72,(S.smooth-90)*Math.PI/180,'#EF4444',Math.round(S.smooth)+'°');
+  if(S.target!==null){
+    dArr(ctx,cx,cy,R*.72,(S.target-90)*Math.PI/180,'#2DD4BF',Math.round(S.target)+'°');
+    let diff=S.target-S.smooth;
+    if(diff>180)diff-=360; if(diff<-180)diff+=360;
+    const ad=Math.abs(Math.round(diff));
+    const dir=diff>0?'Right':diff<0?'Left':'On Target';
+    const el=document.getElementById('bDiff');
+    if(ad<=2){el.innerHTML='✓ On Target';el.style.color='#10B981';}
+    else{el.innerHTML=`Turn <span>${ad}°</span> ${dir}`;el.style.color='';}
+  }
+  ctx.beginPath(); ctx.arc(cx,cy,4,0,Math.PI*2);
+  ctx.fillStyle=isDark?'rgba(255,255,255,.2)':'rgba(0,0,0,.15)'; ctx.fill();
+}
+
+function dArr(ctx,cx,cy,r,angle,color,label){
+  const ex=cx+r*Math.cos(angle),ey=cy+r*Math.sin(angle);
+  ctx.save(); ctx.strokeStyle=color; ctx.fillStyle=color; ctx.lineWidth=2.5;
+  ctx.shadowColor=color; ctx.shadowBlur=6;
+  ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(ex,ey); ctx.stroke();
+  const hl=9,ha=.35;
+  ctx.beginPath(); ctx.moveTo(ex,ey);
+  ctx.lineTo(ex-hl*Math.cos(angle-ha),ey-hl*Math.sin(angle-ha));
+  ctx.lineTo(ex-hl*Math.cos(angle+ha),ey-hl*Math.sin(angle+ha));
+  ctx.closePath(); ctx.fill();
+  ctx.shadowBlur=0; ctx.font='500 10px DM Sans,sans-serif';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(label,cx+(r+16)*Math.cos(angle),cy+(r+16)*Math.sin(angle));
+  ctx.restore();
+}
+
+// ═══════════════════════════════════════
+// BEARING ACTIONS
+// ═══════════════════════════════════════
+function lockBearing(){
+  const v=parseFloat(document.getElementById('bInput').value);
+  if(isNaN(v)||v<0||v>360){showToast('Enter valid bearing 0–360°');return;}
+  S.target=v%360; drawB(); showToast('Locked: '+Math.round(S.target)+'°');
+}
+function clearBearing(){
+  S.target=null; document.getElementById('bInput').value='';
+  document.getElementById('bDiff').textContent='Set a bearing above';
+  document.getElementById('bDiff').style.color=''; drawB();
+}
+function saveBearing(){
+  const v=parseFloat(document.getElementById('bInput').value);
+  if(isNaN(v)||v<0||v>360){showToast('Enter valid bearing first');return;}
+  const e={b:Math.round(v%360),t:new Date().toLocaleTimeString(),dt:new Date().toLocaleDateString()};
+  S.history.unshift(e); if(S.history.length>5)S.history.pop();
+  localStorage.setItem('cp_h',JSON.stringify(S.history));
+  renderHistory(); showToast('Saved: '+e.b+'°');
+}
+function loadHistory(){S.history=JSON.parse(localStorage.getItem('cp_h')||'[]');renderHistory();}
+function renderHistory(){
+  const el=document.getElementById('hList');
+  if(!S.history.length){el.innerHTML='<div class="empty"><i class="fa-regular fa-bookmark"></i>No saved bearings yet</div>';return;}
+  el.innerHTML=S.history.map((x,i)=>`<div class="h-item"><div><div class="h-b">${x.b}°</div><div class="h-t">${x.dt} ${x.t}</div></div><button class="h-del" onclick="delH(${i})"><i class="fa-solid fa-xmark"></i></button></div>`).join('');
+}
+function delH(i){S.history.splice(i,1);localStorage.setItem('cp_h',JSON.stringify(S.history));renderHistory();}
+function clearHistory(){if(!S.history.length){showToast('Already empty');return;}S.history=[];localStorage.setItem('cp_h','[]');renderHistory();showToast('Cleared');}
+
+// ═══════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════
+function loadSett(){
+  const s=JSON.parse(localStorage.getItem('cp_s3')||'{}');
+  S.theme=s.theme||'light'; S.qibla=s.qibla||false; S.haptic=s.haptic!==false; S.decl=parseFloat(s.decl)||0;
+  applyTheme(S.theme);
+  document.getElementById('qT').checked=S.qibla;
+  document.getElementById('hT').checked=S.haptic;
+  document.getElementById('dIn').value=S.decl||'';
+  document.getElementById('dDisp').textContent=S.decl.toFixed(1)+'°';
+  updateThemeUI();
+}
+function saveSett(){localStorage.setItem('cp_s3',JSON.stringify({theme:S.theme,qibla:S.qibla,haptic:S.haptic,decl:S.decl}));}
+function applySett(){
+  S.qibla=document.getElementById('qT').checked;
+  S.haptic=document.getElementById('hT').checked;
+  saveSett(); if(S.qibla)showToast('Qibla Mode ON');
+}
+function applyDecl(){
+  const v=parseFloat(document.getElementById('dIn').value)||0;
+  S.decl=v; document.getElementById('dDisp').textContent=v.toFixed(1)+'°';
+  saveSett(); showToast('Declination: '+v.toFixed(1)+'°');
+}
+function toggleDbg(){document.getElementById('debug-bar').className=document.getElementById('dT').checked?'show':'';}
+
+// ═══════════════════════════════════════
+// THEME — light / dark / teal
+// ═══════════════════════════════════════
+function cycleTheme(){
+  const t=['light','dark','teal'];
+  setTheme(t[(t.indexOf(S.theme)+1)%t.length]);
+}
+function setTheme(t){
+  S.theme=t; applyTheme(t); saveSett(); updateThemeUI();
+  if(S.lastH>=0) drawCompass(S.smooth);
+}
+function applyTheme(t){
+  // Remove theme classes
+  document.body.classList.remove('theme-dark','theme-teal');
+  if(t==='dark'){
+    document.body.classList.add('theme-dark');
+    document.documentElement.style.setProperty('--bg','#0F1117');
+    document.documentElement.style.setProperty('--bg2','#1A1D27');
+    document.documentElement.style.setProperty('--bg3','#22263A');
+    document.documentElement.style.setProperty('--text','#F1F3FA');
+    document.documentElement.style.setProperty('--text2','#8A8FA8');
+    document.documentElement.style.setProperty('--text3','#555A72');
+    document.documentElement.style.setProperty('--border','#252940');
+    document.documentElement.style.setProperty('--accent','#2DD4BF');
+    document.documentElement.style.setProperty('--shadow','0 2px 20px rgba(0,0,0,.3)');
+    document.documentElement.style.setProperty('--shadow2','0 8px 40px rgba(0,0,0,.4)');
+    document.querySelector('meta[name="theme-color"]').content='#0F1117';
+  } else if(t==='teal'){
+    document.body.classList.add('theme-teal');
+    document.documentElement.style.setProperty('--bg','#F0FDFA');
+    document.documentElement.style.setProperty('--bg2','#CCFBF1');
+    document.documentElement.style.setProperty('--bg3','#99F6E4');
+    document.documentElement.style.setProperty('--text','#134E4A');
+    document.documentElement.style.setProperty('--text2','#0F766E');
+    document.documentElement.style.setProperty('--text3','#5EEAD4');
+    document.documentElement.style.setProperty('--border','#99F6E4');
+    document.documentElement.style.setProperty('--accent','#0D9488');
+    document.documentElement.style.setProperty('--shadow','0 2px 20px rgba(13,148,136,.1)');
+    document.documentElement.style.setProperty('--shadow2','0 8px 40px rgba(13,148,136,.15)');
+    document.querySelector('meta[name="theme-color"]').content='#F0FDFA';
+  } else {
+    // light
+    document.documentElement.style.setProperty('--bg','#FFFFFF');
+    document.documentElement.style.setProperty('--bg2','#F7F8FA');
+    document.documentElement.style.setProperty('--bg3','#EEF0F4');
+    document.documentElement.style.setProperty('--text','#111318');
+    document.documentElement.style.setProperty('--text2','#8A8FA8');
+    document.documentElement.style.setProperty('--text3','#B0B5C8');
+    document.documentElement.style.setProperty('--border','#E8EBF2');
+    document.documentElement.style.setProperty('--accent','#2DD4BF');
+    document.documentElement.style.setProperty('--shadow','0 2px 20px rgba(0,0,0,.06)');
+    document.documentElement.style.setProperty('--shadow2','0 8px 40px rgba(0,0,0,.1)');
+    document.querySelector('meta[name="theme-color"]').content='#FFFFFF';
+  }
+  // Redraw bearing canvas with new theme
+  drawB();
+}
+function updateThemeUI(){
+  document.querySelectorAll('.t-opt').forEach(e=>e.classList.remove('active'));
+  const o=document.getElementById('opt-'+S.theme); if(o)o.classList.add('active');
+}
+
+// ═══════════════════════════════════════
+// SENSOR STATUS
+// ═══════════════════════════════════════
+function setSS(type,msg){
+  const el=document.getElementById('ss-pill');
+  el.className=type; el.id='ss-pill';
+  document.getElementById('ss-text').textContent=msg;
+}
+function d(k,v){const el=document.getElementById('db-'+k);if(el)el.textContent=v;}
+
+// ═══════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════
+function getDirFull(deg){
+  return['North','North Northeast','Northeast','East Northeast',
+    'East','East Southeast','Southeast','South Southeast',
+    'South','South Southwest','Southwest','West Southwest',
+    'West','West Northwest','Northwest','North Northwest'
+  ][Math.round(deg/22.5)%16];
+}
+function calcBear(la1,lo1,la2,lo2){
+  const R=d=>d*Math.PI/180,D=r=>r*180/Math.PI;
+  const dl=R(lo2-lo1),f1=R(la1),f2=R(la2);
+  return(D(Math.atan2(Math.sin(dl)*Math.cos(f2),Math.cos(f1)*Math.sin(f2)-Math.sin(f1)*Math.cos(f2)*Math.cos(dl)))+360)%360;
+}
+
+// ═══════════════════════════════════════
+// TAB SWITCH
+// ═══════════════════════════════════════
+function switchTab(name,btn){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='bearing') setTimeout(()=>{initBCvs();drawB();},50);
+}
+
+// ═══════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════
+let tt;
+function showToast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(tt); tt=setTimeout(()=>el.classList.remove('show'),2600);
+}
+
+// ═══════════════════════════════════════
+// RAF
+// ═══════════════════════════════════════
+(function loop(){if(S.target!==null)drawB();requestAnimationFrame(loop);})();
+window.addEventListener('resize',()=>{initCvs();initBCvs();});
+</script>
+</body>
+</html>
