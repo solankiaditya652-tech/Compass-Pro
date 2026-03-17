@@ -1,0 +1,1915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>CompassPro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #0A0A0F;
+            --bg-secondary: #12121A;
+            --bg-card: rgba(20, 20, 30, 0.85);
+            --bg-glass: rgba(255, 255, 255, 0.05);
+            --text-primary: #FFFFFF;
+            --text-secondary: #8A8A9A;
+            --text-muted: #5A5A6A;
+            --accent: #00D4FF;
+            --accent-glow: rgba(0, 212, 255, 0.3);
+            --danger: #FF3B5C;
+            --success: #00FF88;
+            --warning: #FFB800;
+            --needle-north: #FF3B5C;
+            --needle-south: #E8E8F0;
+            --card-radius: 24px;
+            --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --transition-fast: 0.15s ease-out;
+            --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #F0F2F5;
+            --bg-secondary: #FFFFFF;
+            --bg-card: rgba(255, 255, 255, 0.9);
+            --bg-glass: rgba(0, 0, 0, 0.03);
+            --text-primary: #1A1A2E;
+            --text-secondary: #5A5A7A;
+            --text-muted: #9A9AB0;
+            --border-color: rgba(0, 0, 0, 0.08);
+            --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --needle-south: #3A3A4A;
+        }
+
+        [data-theme="military"] {
+            --bg-primary: #0D1A0D;
+            --bg-secondary: #142214;
+            --bg-card: rgba(15, 30, 15, 0.9);
+            --bg-glass: rgba(0, 50, 0, 0.1);
+            --text-primary: #C8E6C8;
+            --text-secondary: #8CB88C;
+            --text-muted: #5A8A5A;
+            --accent: #4CAF50;
+            --accent-glow: rgba(76, 175, 80, 0.3);
+            --needle-north: #FF5722;
+            --needle-south: #A5D6A7;
+            --border-color: rgba(76, 175, 80, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        /* Grid Pattern Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(var(--border-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border-color) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.5;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Splash Screen */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        #splash-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .splash-compass {
+            width: 120px;
+            height: 120px;
+            border: 3px solid var(--accent);
+            border-radius: 50%;
+            position: relative;
+            animation: splashSpin 2s ease-in-out infinite;
+        }
+
+        .splash-compass::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 4px;
+            height: 50px;
+            background: linear-gradient(to top, var(--needle-south), var(--needle-north));
+            transform-origin: bottom center;
+            transform: translate(-50%, -100%);
+            border-radius: 2px;
+        }
+
+        .splash-compass::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 12px;
+            height: 12px;
+            background: var(--accent);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        @keyframes splashSpin {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(90deg); }
+            50% { transform: rotate(180deg); }
+            75% { transform: rotate(270deg); }
+        }
+
+        .splash-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            margin-top: 24px;
+            color: var(--text-primary);
+            letter-spacing: 4px;
+        }
+
+        .splash-loading {
+            margin-top: 32px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .splash-loading::after {
+            content: '';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0% { content: ''; }
+            25% { content: '.'; }
+            50% { content: '..'; }
+            75% { content: '...'; }
+        }
+
+        /* App Container */
+        #app-container {
+            position: relative;
+            height: 100%;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        #app-container.visible {
+            opacity: 1;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            padding-bottom: 100px;
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Compass Tab */
+        #tab-compass {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+        }
+
+        #tab-compass.active {
+            display: flex;
+        }
+
+        .compass-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 8px;
+            margin-bottom: 16px;
+        }
+
+        .compass-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .theme-toggle-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition-smooth);
+            backdrop-filter: blur(10px);
+        }
+
+        .theme-toggle-btn:active {
+            transform: scale(0.95);
+        }
+
+        .compass-container {
+            position: relative;
+            width: 100%;
+            max-width: 340px;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #canvas-compass {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+
+        .compass-center-info {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .compass-degree {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 48px;
+            font-weight: 800;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+
+        .compass-direction {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--accent);
+            margin-top: 4px;
+        }
+
+        .calibrate-warning {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--warning);
+            color: #000;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            display: none;
+            animation: shake 0.5s ease-in-out infinite;
+        }
+
+        .calibrate-warning.visible {
+            display: block;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(-50%) rotate(0deg); }
+            25% { transform: translateX(-50%) rotate(-3deg); }
+            75% { transform: translateX(-50%) rotate(3deg); }
+        }
+
+        /* Info Card */
+        .info-card {
+            width: 100%;
+            max-width: 340px;
+            background: var(--bg-card);
+            border-radius: var(--card-radius);
+            padding: 20px;
+            margin-top: 24px;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(20px);
+            box-shadow: var(--card-shadow);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .info-value.highlight {
+            color: var(--accent);
+        }
+
+        /* Bearing Tab */
+        .bearing-section {
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .bearing-card {
+            background: var(--bg-card);
+            border-radius: var(--card-radius);
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(20px);
+            box-shadow: var(--card-shadow);
+        }
+
+        .bearing-input-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .bearing-input {
+            flex: 1;
+            background: var(--bg-glass);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-align: center;
+            outline: none;
+            transition: var(--transition-smooth);
+        }
+
+        .bearing-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .bearing-btn {
+            padding: 14px 20px;
+            border-radius: 12px;
+            border: none;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .bearing-btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #000;
+        }
+
+        .btn-secondary {
+            background: var(--bg-glass);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .bearing-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .bearing-arrows {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 16px;
+        }
+
+        .arrow-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .arrow-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .arrow-current {
+            background: rgba(255, 59, 92, 0.2);
+            color: var(--danger);
+        }
+
+        .arrow-target {
+            background: rgba(0, 212, 255, 0.2);
+            color: var(--accent);
+        }
+
+        .arrow-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .bearing-difference {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        .bearing-difference span {
+            color: var(--accent);
+        }
+
+        /* History List */
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .history-item {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--border-color);
+            transition: var(--transition-smooth);
+        }
+
+        .history-item:active {
+            background: var(--bg-glass);
+        }
+
+        .history-bearing {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .history-time {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .history-empty {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 40px 20px;
+            font-size: 14px;
+        }
+
+        /* Settings Tab */
+        .settings-card {
+            background: var(--bg-card);
+            border-radius: var(--card-radius);
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(20px);
+            box-shadow: var(--card-shadow);
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .setting-label {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .setting-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 52px;
+            height: 28px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-glass);
+            border: 1px solid var(--border-color);
+            border-radius: 28px;
+            transition: var(--transition-smooth);
+        }
+
+        .toggle-slider::before {
+            position: absolute;
+            content: '';
+            height: 22px;
+            width: 22px;
+            left: 2px;
+            bottom: 2px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            transition: var(--transition-smooth);
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .toggle-switch input:checked + .toggle-slider::before {
+            transform: translateX(24px);
+            background: #000;
+        }
+
+        /* Theme Selector */
+        .theme-options {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .theme-option {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: 2px solid var(--border-color);
+            background: var(--bg-glass);
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: var(--transition-smooth);
+        }
+
+        .theme-option.active {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-glow);
+        }
+
+        /* Declination Input */
+        .declination-input {
+            width: 80px;
+            background: var(--bg-glass);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            color: var(--text-primary);
+            text-align: center;
+            outline: none;
+        }
+
+        .declination-input:focus {
+            border-color: var(--accent);
+        }
+
+        /* Calibration Card */
+        .calibration-card {
+            background: linear-gradient(135deg, var(--accent-glow), transparent);
+            border: 1px solid var(--accent);
+        }
+
+        .calibration-steps {
+            margin-top: 12px;
+        }
+
+        .cal-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 0;
+        }
+
+        .cal-step-num {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: #000;
+            font-size: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .cal-step-text {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Clear Button */
+        .clear-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid var(--danger);
+            background: transparent;
+            color: var(--danger);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .clear-btn:active {
+            background: rgba(255, 59, 92, 0.1);
+        }
+
+        /* Version Info */
+        .version-info {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        /* Bottom Navigation */
+        #bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border-color);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding-bottom: env(safe-area-inset-bottom, 0);
+            z-index: 100;
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            color: var(--text-muted);
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+        }
+
+        .nav-icon {
+            font-size: 22px;
+            margin-bottom: 4px;
+            transition: var(--transition-smooth);
+        }
+
+        .nav-item.active .nav-icon {
+            transform: scale(1.1);
+        }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        /* Permission Modal */
+        #permission-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        #permission-modal.visible {
+            display: flex;
+        }
+
+        .permission-card {
+            background: var(--bg-card);
+            border-radius: var(--card-radius);
+            padding: 32px 24px;
+            max-width: 320px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .permission-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: var(--accent-glow);
+            color: var(--accent);
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        .permission-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .permission-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .permission-btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            background: var(--accent);
+            color: #000;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .permission-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        /* Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Splash Screen -->
+    <div id="splash-screen">
+        <div class="splash-compass"></div>
+        <div class="splash-title">CompassPro</div>
+        <div class="splash-loading">Initializing sensors</div>
+    </div>
+
+    <!-- Permission Modal -->
+    <div id="permission-modal">
+        <div class="permission-card">
+            <div class="permission-icon">
+                <i class="fas fa-compass"></i>
+            </div>
+            <div class="permission-title">Enable Compass</div>
+            <div class="permission-text">
+                CompassPro needs access to your device sensors to provide accurate compass readings and navigation assistance.
+            </div>
+            <button class="permission-btn" id="grant-permission-btn">
+                Grant Permission
+            </button>
+        </div>
+    </div>
+
+    <!-- App Container -->
+    <div id="app-container">
+        <!-- Compass Tab -->
+        <div id="tab-compass" class="tab-content active">
+            <div class="compass-header">
+                <div class="compass-title">CompassPro</div>
+                <button class="theme-toggle-btn" id="quick-theme-toggle" aria-label="Toggle theme">
+                    <i class="fas fa-palette"></i>
+                </button>
+            </div>
+            
+            <div class="compass-container">
+                <div class="calibrate-warning" id="calibrate-warning">
+                    <i class="fas fa-exclamation-triangle"></i> Calibrate: Rotate device in figure-8
+                </div>
+                <canvas id="canvas-compass"></canvas>
+                <div class="compass-center-info">
+                    <div class="compass-degree" id="degree-display">--</div>
+                    <div class="compass-direction" id="direction-display">---</div>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Latitude</span>
+                        <span class="info-value highlight" id="lat-display">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Longitude</span>
+                        <span class="info-value highlight" id="lon-display">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Altitude</span>
+                        <span class="info-value" id="alt-display">-- m</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Speed</span>
+                        <span class="info-value" id="speed-display">-- km/h</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-card" id="qibla-card" style="display: none; margin-top: 16px;">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Qibla Direction</span>
+                        <span class="info-value highlight" id="qibla-display">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Distance to Mecca</span>
+                        <span class="info-value" id="qibla-distance">-- km</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bearing Tab -->
+        <div id="tab-bearing" class="tab-content">
+            <div class="bearing-section">
+                <div class="section-title">Set Target Bearing</div>
+                <div class="bearing-card">
+                    <div class="bearing-input-group">
+                        <input type="number" class="bearing-input" id="bearing-input" 
+                               min="0" max="360" placeholder="0-360" aria-label="Bearing degrees">
+                        <button class="bearing-btn btn-primary" id="lock-bearing-btn">Lock</button>
+                    </div>
+                    
+                    <div class="bearing-display" id="bearing-display" style="display: none;">
+                        <div class="bearing-arrows">
+                            <div class="arrow-container">
+                                <div class="arrow-icon arrow-current">
+                                    <i class="fas fa-location-arrow"></i>
+                                </div>
+                                <span class="arrow-label">Current</span>
+                            </div>
+                            <div class="arrow-container">
+                                <div class="arrow-icon arrow-target">
+                                    <i class="fas fa-bullseye"></i>
+                                </div>
+                                <span class="arrow-label">Target</span>
+                            </div>
+                        </div>
+                        <div class="bearing-difference" id="bearing-difference">
+                            Turn <span>0</span> to reach target
+                        </div>
+                    </div>
+                    
+                    <button class="bearing-btn btn-secondary" id="save-bearing-btn" 
+                            style="width: 100%; margin-top: 12px; display: none;">
+                        <i class="fas fa-bookmark"></i> Save Bearing
+                    </button>
+                </div>
+            </div>
+
+            <div class="bearing-section">
+                <div class="section-title">Saved Bearings</div>
+                <div class="bearing-card">
+                    <div class="history-list" id="history-list">
+                        <div class="history-empty">No saved bearings yet</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="tab-settings" class="tab-content">
+            <div class="settings-card">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <span class="setting-label">True North</span>
+                        <span class="setting-desc">Adjust for magnetic declination</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="true-north-toggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item" id="declination-setting" style="display: none;">
+                    <div class="setting-info">
+                        <span class="setting-label">Declination</span>
+                        <span class="setting-desc">Manual override in degrees</span>
+                    </div>
+                    <input type="number" class="declination-input" id="declination-input" 
+                           min="-180" max="180" step="0.1" value="0">
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <span class="setting-label">Qibla Mode</span>
+                        <span class="setting-desc">Show direction to Mecca</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="qibla-toggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <span class="setting-label">Theme</span>
+                        <span class="setting-desc">Choose your preferred style</span>
+                    </div>
+                </div>
+                <div class="theme-options">
+                    <button class="theme-option active" data-theme="dark">Dark</button>
+                    <button class="theme-option" data-theme="light">Light</button>
+                    <button class="theme-option" data-theme="military">Military</button>
+                </div>
+            </div>
+
+            <div class="settings-card calibration-card">
+                <div class="setting-label" style="margin-bottom: 8px;">
+                    <i class="fas fa-sync-alt"></i> Calibration Instructions
+                </div>
+                <div class="calibration-steps">
+                    <div class="cal-step">
+                        <span class="cal-step-num">1</span>
+                        <span class="cal-step-text">Hold your device flat and away from metal objects</span>
+                    </div>
+                    <div class="cal-step">
+                        <span class="cal-step-num">2</span>
+                        <span class="cal-step-text">Move device in a figure-8 pattern several times</span>
+                    </div>
+                    <div class="cal-step">
+                        <span class="cal-step-num">3</span>
+                        <span class="cal-step-text">Rotate device fully in all axes</span>
+                    </div>
+                </div>
+            </div>
+
+            <button class="clear-btn" id="clear-history-btn">
+                <i class="fas fa-trash-alt"></i> Clear All History
+            </button>
+
+            <div class="version-info">
+                CompassPro v1.0.0<br>
+                Built with precision navigation technology
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav id="bottom-nav" role="navigation" aria-label="Main navigation">
+        <div class="nav-item active" data-tab="compass" role="button" tabindex="0">
+            <i class="fas fa-compass nav-icon"></i>
+            <span class="nav-label">Compass</span>
+        </div>
+        <div class="nav-item" data-tab="bearing" role="button" tabindex="0">
+            <i class="fas fa-location-arrow nav-icon"></i>
+            <span class="nav-label">Bearing</span>
+        </div>
+        <div class="nav-item" data-tab="settings" role="button" tabindex="0">
+            <i class="fas fa-cog nav-icon"></i>
+            <span class="nav-label">Settings</span>
+        </div>
+    </nav>
+
+    <script>
+        // =============================================
+        // STATE MANAGEMENT
+        // =============================================
+        const AppState = {
+            currentHeading: 0,
+            targetBearing: null,
+            isLocked: false,
+            useTrueNorth: false,
+            declination: 0,
+            qiblaMode: false,
+            theme: 'dark',
+            bearings: [],
+            gpsCoords: null,
+            hasPermission: false,
+            lastDrawnHeading: -1,
+            accuracy: 100,
+            watchId: null
+        };
+
+        // Constants
+        const MECCA_LAT = 21.4225;
+        const MECCA_LON = 39.8262;
+        const MIN_HEADING_DELTA = 0.5;
+
+        // =============================================
+        // DOM ELEMENTS
+        // =============================================
+        const elements = {
+            splash: document.getElementById('splash-screen'),
+            appContainer: document.getElementById('app-container'),
+            permissionModal: document.getElementById('permission-modal'),
+            grantBtn: document.getElementById('grant-permission-btn'),
+            canvas: document.getElementById('canvas-compass'),
+            degreeDisplay: document.getElementById('degree-display'),
+            directionDisplay: document.getElementById('direction-display'),
+            calibrateWarning: document.getElementById('calibrate-warning'),
+            latDisplay: document.getElementById('lat-display'),
+            lonDisplay: document.getElementById('lon-display'),
+            altDisplay: document.getElementById('alt-display'),
+            speedDisplay: document.getElementById('speed-display'),
+            qiblaCard: document.getElementById('qibla-card'),
+            qiblaDisplay: document.getElementById('qibla-display'),
+            qiblaDistance: document.getElementById('qibla-distance'),
+            bearingInput: document.getElementById('bearing-input'),
+            lockBtn: document.getElementById('lock-bearing-btn'),
+            bearingDisplay: document.getElementById('bearing-display'),
+            bearingDifference: document.getElementById('bearing-difference'),
+            saveBtn: document.getElementById('save-bearing-btn'),
+            historyList: document.getElementById('history-list'),
+            trueNorthToggle: document.getElementById('true-north-toggle'),
+            declinationSetting: document.getElementById('declination-setting'),
+            declinationInput: document.getElementById('declination-input'),
+            qiblaToggle: document.getElementById('qibla-toggle'),
+            themeOptions: document.querySelectorAll('.theme-option'),
+            clearBtn: document.getElementById('clear-history-btn'),
+            quickThemeToggle: document.getElementById('quick-theme-toggle'),
+            navItems: document.querySelectorAll('.nav-item'),
+            tabContents: document.querySelectorAll('.tab-content')
+        };
+
+        // Canvas context
+        const ctx = elements.canvas.getContext('2d');
+        let canvasSize = 0;
+        let centerX = 0;
+        let centerY = 0;
+
+        // =============================================
+        // UTILITY FUNCTIONS
+        // =============================================
+        function getDirectionLabel(heading) {
+            const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+            const index = Math.round(heading / 45) % 8;
+            return directions[index];
+        }
+
+        function toRadians(deg) {
+            return deg * Math.PI / 180;
+        }
+
+        function toDegrees(rad) {
+            return rad * 180 / Math.PI;
+        }
+
+        function normalizeHeading(heading) {
+            heading = heading % 360;
+            return heading < 0 ? heading + 360 : heading;
+        }
+
+        function haversineDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Earth's radius in km
+            const dLat = toRadians(lat2 - lat1);
+            const dLon = toRadians(lon2 - lon1);
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        function calculateBearing(lat1, lon1, lat2, lon2) {
+            const dLon = toRadians(lon2 - lon1);
+            const lat1Rad = toRadians(lat1);
+            const lat2Rad = toRadians(lat2);
+            const x = Math.sin(dLon) * Math.cos(lat2Rad);
+            const y = Math.cos(lat1Rad) * Math.sin(lat2Rad) -
+                      Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLon);
+            return normalizeHeading(toDegrees(Math.atan2(x, y)));
+        }
+
+        function formatCoord(value, isLat) {
+            if (value === null || value === undefined) return '--';
+            const dir = isLat ? (value >= 0 ? 'N' : 'S') : (value >= 0 ? 'E' : 'W');
+            return `${Math.abs(value).toFixed(4)}${dir}`;
+        }
+
+        function formatTime(date) {
+            return new Date(date).toLocaleTimeString([], { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+        }
+
+        // =============================================
+        // CANVAS DRAWING
+        // =============================================
+        function initCanvas() {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = elements.canvas.getBoundingClientRect();
+            canvasSize = Math.min(rect.width, rect.height);
+            
+            elements.canvas.width = canvasSize * dpr;
+            elements.canvas.height = canvasSize * dpr;
+            elements.canvas.style.width = canvasSize + 'px';
+            elements.canvas.style.height = canvasSize + 'px';
+            
+            ctx.scale(dpr, dpr);
+            centerX = canvasSize / 2;
+            centerY = canvasSize / 2;
+        }
+
+        function drawCompass(heading) {
+            const radius = Math.max(10, (canvasSize / 2) - 10);
+            const eps = 0.001;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvasSize, canvasSize);
+            
+            // Get computed styles
+            const style = getComputedStyle(document.documentElement);
+            const bgColor = style.getPropertyValue('--bg-card').trim() || 'rgba(20, 20, 30, 0.85)';
+            const borderColor = style.getPropertyValue('--border-color').trim() || 'rgba(255, 255, 255, 0.08)';
+            const textColor = style.getPropertyValue('--text-primary').trim() || '#FFFFFF';
+            const accentColor = style.getPropertyValue('--accent').trim() || '#00D4FF';
+            const mutedColor = style.getPropertyValue('--text-muted').trim() || '#5A5A6A';
+            const northColor = style.getPropertyValue('--needle-north').trim() || '#FF3B5C';
+            const southColor = style.getPropertyValue('--needle-south').trim() || '#E8E8F0';
+            
+            // Draw outer ring
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            ctx.fillStyle = bgColor;
+            ctx.fill();
+            ctx.strokeStyle = borderColor;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw inner ring
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius - 20, 0, Math.PI * 2);
+            ctx.strokeStyle = borderColor;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            
+            // Draw tick marks and labels
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(toRadians(-heading));
+            
+            for (let i = 0; i < 360; i += 5) {
+                const isMajor = i % 15 === 0;
+                const isCardinal = i % 90 === 0;
+                const tickLength = isCardinal ? 15 : (isMajor ? 10 : 5);
+                const tickWidth = isCardinal ? 3 : (isMajor ? 2 : 1);
+                
+                ctx.beginPath();
+                ctx.moveTo(0, -radius + 5);
+                ctx.lineTo(0, -radius + 5 + tickLength);
+                ctx.strokeStyle = isCardinal ? accentColor : (isMajor ? textColor : mutedColor);
+                ctx.lineWidth = tickWidth;
+                ctx.stroke();
+            }
+            
+            // Draw direction labels
+            const directions = [
+                { label: 'N', angle: 0, color: northColor },
+                { label: 'E', angle: 90, color: textColor },
+                { label: 'S', angle: 180, color: textColor },
+                { label: 'W', angle: 270, color: textColor }
+            ];
+            
+            directions.forEach(dir => {
+                ctx.save();
+                ctx.rotate(toRadians(dir.angle));
+                ctx.translate(0, -radius + 38);
+                ctx.rotate(toRadians(-dir.angle + heading));
+                ctx.font = 'bold 16px Orbitron';
+                ctx.fillStyle = dir.color;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(dir.label, 0, 0);
+                ctx.restore();
+            });
+            
+            // Draw intercardinal labels
+            const intercardinals = [
+                { label: 'NE', angle: 45 },
+                { label: 'SE', angle: 135 },
+                { label: 'SW', angle: 225 },
+                { label: 'NW', angle: 315 }
+            ];
+            
+            intercardinals.forEach(dir => {
+                ctx.save();
+                ctx.rotate(toRadians(dir.angle));
+                ctx.translate(0, -radius + 38);
+                ctx.rotate(toRadians(-dir.angle + heading));
+                ctx.font = '12px Orbitron';
+                ctx.fillStyle = mutedColor;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(dir.label, 0, 0);
+                ctx.restore();
+            });
+            
+            ctx.restore();
+            
+            // Draw needle
+            const needleLength = radius - 60;
+            const safeNeedleLength = Math.max(10, needleLength);
+            
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            
+            // North needle (red)
+            ctx.beginPath();
+            ctx.moveTo(0, -safeNeedleLength);
+            ctx.lineTo(-8, 0);
+            ctx.lineTo(0, -10);
+            ctx.lineTo(8, 0);
+            ctx.closePath();
+            ctx.fillStyle = northColor;
+            ctx.fill();
+            
+            // South needle (white)
+            ctx.beginPath();
+            ctx.moveTo(0, safeNeedleLength);
+            ctx.lineTo(-8, 0);
+            ctx.lineTo(0, 10);
+            ctx.lineTo(8, 0);
+            ctx.closePath();
+            ctx.fillStyle = southColor;
+            ctx.fill();
+            
+            // Center circle
+            ctx.beginPath();
+            ctx.arc(0, 0, 12, 0, Math.PI * 2);
+            ctx.fillStyle = accentColor;
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.arc(0, 0, 6, 0, Math.PI * 2);
+            ctx.fillStyle = bgColor;
+            ctx.fill();
+            
+            ctx.restore();
+            
+            // Draw target bearing indicator if locked
+            if (AppState.isLocked && AppState.targetBearing !== null) {
+                const targetAngle = toRadians(AppState.targetBearing - heading);
+                
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(targetAngle);
+                
+                // Target arrow
+                ctx.beginPath();
+                ctx.moveTo(0, -radius + 55);
+                ctx.lineTo(-6, -radius + 70);
+                ctx.lineTo(0, -radius + 65);
+                ctx.lineTo(6, -radius + 70);
+                ctx.closePath();
+                ctx.fillStyle = accentColor;
+                ctx.fill();
+                
+                ctx.restore();
+            }
+            
+            // Draw Qibla indicator if enabled
+            if (AppState.qiblaMode && AppState.gpsCoords) {
+                const qiblaBearing = calculateBearing(
+                    AppState.gpsCoords.lat,
+                    AppState.gpsCoords.lon,
+                    MECCA_LAT,
+                    MECCA_LON
+                );
+                const qiblaAngle = toRadians(qiblaBearing - heading);
+                
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(qiblaAngle);
+                
+                // Qibla indicator (Kaaba symbol)
+                ctx.beginPath();
+                ctx.arc(0, -radius + 50, 8, 0, Math.PI * 2);
+                ctx.fillStyle = '#FFD700';
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.arc(0, -radius + 50, 5, 0, Math.PI * 2);
+                ctx.fillStyle = '#000';
+                ctx.fill();
+                
+                ctx.restore();
+            }
+        }
+
+        // =============================================
+        // SENSOR HANDLING
+        // =============================================
+        function handleOrientation(event) {
+            let heading;
+            
+            if (event.webkitCompassHeading !== undefined) {
+                // iOS
+                heading = event.webkitCompassHeading;
+                AppState.accuracy = event.webkitCompassAccuracy || 100;
+            } else if (event.alpha !== null) {
+                // Android / others
+                heading = 360 - event.alpha;
+            } else {
+                return;
+            }
+            
+            // Apply declination for true north
+            if (AppState.useTrueNorth) {
+                heading += AppState.declination;
+            }
+            
+            heading = normalizeHeading(heading);
+            
+            // Check if heading changed significantly
+            if (Math.abs(heading - AppState.lastDrawnHeading) >= MIN_HEADING_DELTA) {
+                AppState.currentHeading = heading;
+                AppState.lastDrawnHeading = heading;
+                
+                updateUI();
+                drawCompass(heading);
+            }
+            
+            // Show calibration warning if accuracy is poor
+            if (AppState.accuracy > 10 && AppState.accuracy < 1000) {
+                elements.calibrateWarning.classList.add('visible');
+            } else {
+                elements.calibrateWarning.classList.remove('visible');
+            }
+            
+            // Haptic feedback near North
+            if (Math.abs(heading) < 2 || Math.abs(heading - 360) < 2) {
+                if (navigator.vibrate) {
+                    navigator.vibrate(50);
+                }
+            }
+        }
+
+        async function requestOrientationPermission() {
+            // Check if DeviceOrientationEvent exists
+            if (!window.DeviceOrientationEvent) {
+                console.warn('DeviceOrientationEvent not supported');
+                return false;
+            }
+            
+            // iOS 13+ requires permission
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                try {
+                    const permission = await DeviceOrientationEvent.requestPermission();
+                    if (permission === 'granted') {
+                        AppState.hasPermission = true;
+                        window.addEventListener('deviceorientation', handleOrientation, true);
+                        return true;
+                    }
+                } catch (error) {
+                    console.error('Permission request failed:', error);
+                    return false;
+                }
+            } else {
+                // Non-iOS or older iOS
+                AppState.hasPermission = true;
+                window.addEventListener('deviceorientation', handleOrientation, true);
+                return true;
+            }
+            
+            return false;
+        }
+
+        // =============================================
+        // GPS HANDLING
+        // =============================================
+        function startGPS() {
+            if (!navigator.geolocation) {
+                console.warn('Geolocation not supported');
+                return;
+            }
+            
+            AppState.watchId = navigator.geolocation.watchPosition(
+                position => {
+                    AppState.gpsCoords = {
+                        lat: position.coords.latitude,
+                        lon: position.coords.longitude,
+                        alt: position.coords.altitude,
+                        speed: position.coords.speed
+                    };
+                    
+                    updateGPSDisplay();
+                },
+                error => {
+                    console.warn('GPS error:', error.message);
+                },
+                {
+                    enableHighAccuracy: true,
+                    maximumAge: 2000,
+                    timeout: 10000
+                }
+            );
+        }
+
+        function stopGPS() {
+            if (AppState.watchId !== null) {
+                navigator.geolocation.clearWatch(AppState.watchId);
+                AppState.watchId = null;
+            }
+        }
+
+        function updateGPSDisplay() {
+            if (AppState.gpsCoords) {
+                elements.latDisplay.textContent = formatCoord(AppState.gpsCoords.lat, true);
+                elements.lonDisplay.textContent = formatCoord(AppState.gpsCoords.lon, false);
+                elements.altDisplay.textContent = AppState.gpsCoords.alt 
+                    ? `${Math.round(AppState.gpsCoords.alt)} m` : '-- m';
+                elements.speedDisplay.textContent = AppState.gpsCoords.speed 
+                    ? `${Math.round(AppState.gpsCoords.speed * 3.6)} km/h` : '-- km/h';
+                
+                // Update Qibla info
+                if (AppState.qiblaMode) {
+                    const qibla = calculateBearing(
+                        AppState.gpsCoords.lat,
+                        AppState.gpsCoords.lon,
+                        MECCA_LAT,
+                        MECCA_LON
+                    );
+                    const distance = haversineDistance(
+                        AppState.gpsCoords.lat,
+                        AppState.gpsCoords.lon,
+                        MECCA_LAT,
+                        MECCA_LON
+                    );
+                    
+                    elements.qiblaDisplay.textContent = `${Math.round(qibla)}° ${getDirectionLabel(qibla)}`;
+                    elements.qiblaDistance.textContent = `${Math.round(distance)} km`;
+                }
+            }
+        }
+
+        // =============================================
+        // UI UPDATES
+        // =============================================
+        function updateUI() {
+            // Update compass display
+            elements.degreeDisplay.textContent = `${Math.round(AppState.currentHeading)}°`;
+            elements.directionDisplay.textContent = getDirectionLabel(AppState.currentHeading);
+            
+            // Update bearing display
+            if (AppState.isLocked && AppState.targetBearing !== null) {
+                const diff = AppState.targetBearing - AppState.currentHeading;
+                let normalizedDiff = diff;
+                
+                if (diff > 180) normalizedDiff = diff - 360;
+                if (diff < -180) normalizedDiff = diff + 360;
+                
+                const direction = normalizedDiff > 0 ? 'Right' : 'Left';
+                const absDiff = Math.abs(normalizedDiff);
+                
+                elements.bearingDifference.innerHTML = `Turn <span>${Math.round(absDiff)}° ${direction}</span> to reach target`;
+            }
+        }
+
+        function updateTheme(theme) {
+            AppState.theme = theme;
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('compassPro_theme', theme);
+            
+            elements.themeOptions.forEach(opt => {
+                opt.classList.toggle('active', opt.dataset.theme === theme);
+            });
+            
+            // Redraw compass with new colors
+            drawCompass(AppState.currentHeading);
+        }
+
+        function updateBearingHistory() {
+            if (AppState.bearings.length === 0) {
+                elements.historyList.innerHTML = '<div class="history-empty">No saved bearings yet</div>';
+                return;
+            }
+            
+            elements.historyList.innerHTML = AppState.bearings.map((item, index) => `
+                <div class="history-item" data-index="${index}">
+                    <div>
+                        <div class="history-bearing">${item.bearing}°</div>
+                        <div class="history-time">${formatTime(item.timestamp)}</div>
+                    </div>
+                    <i class="fas fa-chevron-right" style="color: var(--text-muted);"></i>
+                </div>
+            `).join('');
+            
+            // Add click handlers
+            elements.historyList.querySelectorAll('.history-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const index = parseInt(item.dataset.index);
+                    const bearing = AppState.bearings[index].bearing;
+                    elements.bearingInput.value = bearing;
+                    setTargetBearing(bearing);
+                });
+            });
+        }
+
+        function setTargetBearing(bearing) {
+            bearing = normalizeHeading(parseFloat(bearing));
+            
+            if (isNaN(bearing)) {
+                alert('Please enter a valid bearing (0-360)');
+                return;
+            }
+            
+            AppState.targetBearing = bearing;
+            AppState.isLocked = true;
+            
+            elements.bearingDisplay.style.display = 'flex';
+            elements.saveBtn.style.display = 'block';
+            elements.lockBtn.textContent = 'Unlock';
+            
+            updateUI();
+            drawCompass(AppState.currentHeading);
+        }
+
+        function unlockBearing() {
+            AppState.targetBearing = null;
+            AppState.isLocked = false;
+            
+            elements.bearingDisplay.style.display = 'none';
+            elements.saveBtn.style.display = 'none';
+            elements.lockBtn.textContent = 'Lock';
+            elements.bearingInput.value = '';
+            
+            drawCompass(AppState.currentHeading);
+        }
+
+        function saveBearing() {
+            if (AppState.targetBearing === null) return;
+            
+            const newBearing = {
+                bearing: AppState.targetBearing,
+                timestamp: Date.now()
+            };
+            
+            AppState.bearings.unshift(newBearing);
+            AppState.bearings = AppState.bearings.slice(0, 5); // Keep only 5
+            
+            localStorage.setItem('compassPro_bearings', JSON.stringify(AppState.bearings));
+            updateBearingHistory();
+            
+            // Visual feedback
+            elements.saveBtn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+            setTimeout(() => {
+                elements.saveBtn.innerHTML = '<i class="fas fa-bookmark"></i> Save Bearing';
+            }, 1500);
+        }
+
+        // =============================================
+        // EVENT HANDLERS
+        // =============================================
+        function initEventListeners() {
+            // Permission button
+            elements.grantBtn.addEventListener('click', async () => {
+                const granted = await requestOrientationPermission();
+                
+                if (granted) {
+                    elements.permissionModal.classList.remove('visible');
+                    startGPS();
+                    drawCompass(0);
+                } else {
+                    alert('Permission denied. Compass features will be limited.');
+                    elements.permissionModal.classList.remove('visible');
+                }
+            });
+            
+            // Navigation
+            elements.navItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const tab = item.dataset.tab;
+                    
+                    elements.navItems.forEach(n => n.classList.remove('active'));
+                    item.classList.add('active');
+                    
+                    elements.tabContents.forEach(c => c.classList.remove('active'));
+                    document.getElementById(`tab-${tab}`).classList.add('active');
+                    
+                    // GPS only active on compass tab
+                    if (tab === 'compass') {
+                        startGPS();
+                    } else {
+                        stopGPS();
+                    }
+                });
+                
+                // Keyboard accessibility
+                item.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        item.click();
+                    }
+                });
+            });
+            
+            // Quick theme toggle
+            elements.quickThemeToggle.addEventListener('click', () => {
+                const themes = ['dark', 'light', 'military'];
+                const currentIndex = themes.indexOf(AppState.theme);
+                const nextIndex = (currentIndex + 1) % themes.length;
+                updateTheme(themes[nextIndex]);
+            });
+            
+            // Bearing input
+            elements.lockBtn.addEventListener('click', () => {
+                if (AppState.isLocked) {
+                    unlockBearing();
+                } else {
+                    const value = elements.bearingInput.value;
+                    if (value) {
+                        setTargetBearing(value);
+                    }
+                }
+            });
+            
+            elements.bearingInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    setTargetBearing(elements.bearingInput.value);
+                }
+            });
+            
+            // Save bearing
+            elements.saveBtn.addEventListener('click', saveBearing);
+            
+            // True North toggle
+            elements.trueNorthToggle.addEventListener('change', (e) => {
+                AppState.useTrueNorth = e.target.checked;
+                elements.declinationSetting.style.display = e.target.checked ? 'flex' : 'none';
+                
+                if (e.target.checked && AppState.gpsCoords) {
+                    // Try to fetch declination from NOAA (offline fallback to manual)
+                    fetchDeclination(AppState.gpsCoords.lat, AppState.gpsCoords.lon);
+                }
+            });
+            
+            // Declination input
+            elements.declinationInput.addEventListener('change', (e) => {
+                AppState.declination = parseFloat(e.target.value) || 0;
+            });
+            
+            // Qibla toggle
+            elements.qiblaToggle.addEventListener('change', (e) => {
+                AppState.qiblaMode = e.target.checked;
+                elements.qiblaCard.style.display = e.target.checked ? 'block' : 'none';
+                drawCompass(AppState.currentHeading);
+            });
+            
+            // Theme options
+            elements.themeOptions.forEach(opt => {
+                opt.addEventListener('click', () => {
+                    updateTheme(opt.dataset.theme);
+                });
+            });
+            
+            // Clear history
+            elements.clearBtn.addEventListener('click', () => {
+                if (confirm('Clear all saved bearings?')) {
+                    AppState.bearings = [];
+                    localStorage.removeItem('compassPro_bearings');
+                    updateBearingHistory();
+                }
+            });
+            
+            // Window resize
+            window.addEventListener('resize', () => {
+                initCanvas();
+                drawCompass(AppState.currentHeading);
+            });
+            
+            // Visibility change - manage GPS
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    stopGPS();
+                } else if (document.getElementById('tab-compass').classList.contains('active')) {
+                    startGPS();
+                }
+            });
+        }
+
+        // =============================================
+        // DECLINATION FETCH (NOAA API)
+        // =============================================
+        async function fetchDeclination(lat, lon) {
+            try {
+                const response = await fetch(
+                    `https://www.ngdc.noaa.gov/geomag-web/calculators/calculateDeclination?lat1=${lat}&lon1=${lon}&resultFormat=json`
+                );
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.result && data.result[0]) {
+                        AppState.declination = data.result[0].declination;
+                        elements.declinationInput.value = AppState.declination.toFixed(1);
+                    }
+                }
+            } catch (error) {
+                console.warn('Could not fetch declination:', error);
+                // Fallback to manual input
+            }
+        }
+
+        // =============================================
+        // INITIALIZATION
+        // =============================================
+        function loadSavedState() {
+            // Theme
+            const savedTheme = localStorage.getItem('compassPro_theme');
+            if (savedTheme) {
+                updateTheme(savedTheme);
+            }
+            
+            // Bearings
+            const savedBearings = localStorage.getItem('compassPro_bearings');
+            if (savedBearings) {
+                try {
+                    AppState.bearings = JSON.parse(savedBearings);
+                    updateBearingHistory();
+                } catch (e) {
+                    console.warn('Could not parse saved bearings');
+                }
+            }
+        }
+
+        async function init() {
+            // Load saved state
+            loadSavedState();
+            
+            // Initialize canvas
+            initCanvas();
+            
+            // Initialize event listeners
+            initEventListeners();
+            
+            // Draw initial compass
+            drawCompass(0);
+            
+            // Show splash screen
+            setTimeout(() => {
+                elements.splash.classList.add('hidden');
+                elements.appContainer.classList.add('visible');
+                
+                // Check for orientation permission
+                if (window.DeviceOrientationEvent && 
+                    typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    // iOS - show permission modal
+                    elements.permissionModal.classList.add('visible');
+                } else {
+                    // Non-iOS or already have implicit permission
+                    requestOrientationPermission().then(granted => {
+                        if (granted) {
+                            startGPS();
+                        }
+                    });
+                }
+            }, 2000);
+        }
+
+        // Start app when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>
